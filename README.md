@@ -7,9 +7,8 @@ The full example documentation is available in the [Babel Obfuscator Manual](htt
 
 Copy the babel.licenses license file inside the project folder then use the following commands to create the deployable package:
 
-`dotnet pack`
+`dotnet publish`
 
 To run the application from command line use:
 
 `dotnet run`
-
