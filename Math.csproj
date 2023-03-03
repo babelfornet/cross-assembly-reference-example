@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Babel.Obfuscator" Version="10.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+  </ItemGroup>
+
+  <!-- Obfuscate public interface of MathNet.Numerics reference -->
+  <Target Name="BeforeObfuscate">
+	<PropertyGroup>
+		<MathNetNumerics Condition="'%(filename)' == 'MathNet.Numerics'">@(ReferencePathWithRefAssemblies->'%(fullpath)')</MathNetNumerics>
+		<MathNetRules>
+			<Rules>
+				<Rule name="rename public" feature="renaming" exclude="false">
+					<Access>Public</Access>
+					<Pattern>*</Pattern>
+				</Rule>
+			</Rules>
+		</MathNetRules>
+	</PropertyGroup>
+	<Message Text="NathNet: $(MathNetNumerics)" Importance="high" />
+    <Babel InputFile="$(MathNetNumerics)" OutputFile="$(TargetDir)MathNet.Numerics.dll" FlattenNamespaces="true" XmlRules="$(MathNetRules)" GenerateMapOutFile="true" />
+  </Target>
+
+  <!-- Target assembly obfuscation settings -->
+  <ItemGroup>
+	<MapInFile Include="$(TargetDir)MathNet.Numerics.dll.map.xml" />
+  </ItemGroup>
+  <PropertyGroup>
+	<StringEncryption>true</StringEncryption>
+	<ValueEncryption>array=true;true;</ValueEncryption>
+	<ControlFlowObfuscation>goto=on;if=on;switch=on;case=on;call=on</ControlFlowObfuscation>
+	<CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+  </PropertyGroup>
+
+  <!-- Replace the deployed MathNet.Numerics.dll assembly reference with the obfuscated one -->
+  <Target Name="UpdateFilesToPublish" AfterTargets="ComputeFilesToPublish">
+	<ItemGroup>
+	  <ResolvedFileToPublish Remove="$(MathNetNumerics)" />
+	  <ResolvedFileToPublish Include="$(TargetDir)MathNet.Numerics.dll">
+	    <RelativePath>MathNet.Numerics.dll</RelativePath>
+	  </ResolvedFileToPublish>
+	</ItemGroup>
+  </Target>
+	
+</Project>
